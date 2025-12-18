@@ -6,54 +6,128 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Cronometro">
+    <meta name="apple-mobile-web-app-title" content="Orologio">
     <meta name="mobile-web-app-capable" content="yes">
     
-    <title>Cronometro</title>
+    <title>Cronometro iPhone</title>
     <style>
-        :root { --ios-green: #1a3d20; --ios-green-text: #50d366; --ios-red: #321614; --ios-red-text: #ff453a; --ios-gray: #333; }
+        :root { 
+            --ios-green: #1a3d20; --ios-green-text: #50d366; 
+            --ios-red: #321614; --ios-red-text: #ff453a; 
+            --ios-gray: #333333; --ios-tab-gray: #8e8e93; --ios-orange: #ff9f0a;
+            --ios-divider: #262626;
+        }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body { 
             background-color: #000; color: #fff; 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-            margin: 0; display: flex; justify-content: center; height: 100vh; overflow: hidden;
-            padding-top: env(safe-area-inset-top); /* Gestisce la tacca dell'iPhone */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        .iphone-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; padding: 40px 20px; }
-        .display { font-size: 5rem; font-weight: 200; text-align: center; margin: 60px 0; font-variant-numeric: tabular-nums; letter-spacing: -2px; }
-        .controls { display: flex; justify-content: space-between; margin-bottom: 30px; }
-        
-        .btn { 
-            width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 17px; 
-            display: flex; align-items: center; justify-content: center; outline: none; transition: opacity 0.1s;
+        .iphone-container { 
+            flex: 1; display: flex; flex-direction: column; 
+            padding: 80px 16px 0 16px; 
         }
-        .btn:active { opacity: 0.5; }
+
+        .display { 
+            font-size: 5.8rem; font-weight: 200; text-align: center; 
+            margin: 40px 0 60px 0; font-variant-numeric: tabular-nums; 
+            letter-spacing: -1px; line-height: 1;
+        }
+
+        .controls { 
+            display: flex; justify-content: space-between; 
+            margin-bottom: 25px; padding: 0 5px;
+        }
+
+        .btn { 
+            width: 78px; height: 78px; border-radius: 50%; border: none; font-size: 17px; 
+            display: flex; align-items: center; justify-content: center; outline: none;
+            font-weight: 400;
+        }
+        .btn-inner {
+            width: 74px; height: 74px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid #000;
+        }
+        .btn:active { filter: brightness(0.8); }
+        
         .btn-start { background: var(--ios-green); color: var(--ios-green-text); }
         .btn-stop { background: var(--ios-red); color: var(--ios-red-text); }
         .btn-reset { background: var(--ios-gray); color: #fff; }
         .btn-disabled { background: #1c1c1e; color: #8e8e93; }
 
-        .laps-container { flex-grow: 1; border-top: 0.5px solid #333; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .laps-container { 
+            flex: 1; border-top: 0.5px solid var(--ios-divider); 
+            overflow-y: auto; -webkit-overflow-scrolling: touch; 
+        }
         .laps-list { list-style: none; padding: 0; margin: 0; }
-        .laps-list li { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid #333; font-size: 17px; }
+        .laps-list li { 
+            display: flex; justify-content: space-between; 
+            padding: 11px 0; border-bottom: 0.5px solid var(--ios-divider); 
+            font-size: 17px;
+        }
+        .lap-label { color: #fff; }
         .lap-time { font-variant-numeric: tabular-nums; }
+
+        /* TAB BAR */
+        .tab-bar {
+            background-color: #161616;
+            border-top: 0.5px solid var(--ios-divider);
+            display: flex; justify-content: space-around;
+            padding-top: 8px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+        }
+
+        .tab-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: var(--ios-tab-gray); font-size: 10px; font-weight: 500;
+            width: 25%;
+        }
+        .tab-item.active { color: var(--ios-orange); }
+        .icon-svg { fill: currentColor; width: 24px; height: 24px; margin-bottom: 4px; }
     </style>
 </head>
 <body>
+
     <div class="iphone-container">
         <div class="display" id="mainDisplay">00:00.00</div>
+        
         <div class="controls">
-            <button id="leftBtn" class="btn btn-disabled">Giro</button>
-            <button id="rightBtn" class="btn btn-start">Avvia</button>
+            <button id="leftBtn" class="btn btn-disabled"><div class="btn-inner">Giro</div></button>
+            <button id="rightBtn" class="btn btn-start"><div class="btn-inner">Avvia</div></button>
         </div>
-        <div class="laps-container"><ul id="laps" class="laps-list"></ul></div>
+
+        <div class="laps-container">
+            <ul id="laps" class="laps-list"></ul>
+        </div>
     </div>
+
+    <nav class="tab-bar">
+        <div class="tab-item">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            <span>Ore locali</span>
+        </div>
+        <div class="tab-item">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 20c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-18C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm.5 5h-1v5.5l4.75 2.85.5-.82-4.25-2.53V7z"/></svg>
+            <span>Sveglie</span>
+        </div>
+        <div class="tab-item active">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42C16.07 4.74 14.12 4 12 4c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+            <span>Cronometro</span>
+        </div>
+        <div class="tab-item">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M6 2h12v6l-4 4 4 4v6H6v-6l4-4-4-4V2zm10 14.5l-4-4-4 4V20h8v-3.5zm-4-5l4-4V4H8v3.5l4 4z"/></svg>
+            <span>Timer</span>
+        </div>
+    </nav>
 
     <script>
         let startTime, elapsedTime = 0, timerInterval, isRunning = false;
         let globalStopSequence = 0, sessionLapCount = 0;
+        
+        // LA TUA LISTA DI 8 NUMERI
         const riggedMillis = ["09", "04", "03", "12", "45", "28", "08", "03"];
 
         const d = document.getElementById('mainDisplay');
@@ -62,23 +136,27 @@
         const lapsList = document.getElementById('laps');
 
         function format(ms) {
-            let diff = ms;
-            let mins = Math.floor(diff / 60000);
-            let secs = Math.floor((diff % 60000) / 1000);
-            let millis = Math.floor((diff % 1000) / 10);
+            let mins = Math.floor(ms / 60000);
+            let secs = Math.floor((ms % 60000) / 1000);
+            let millis = Math.floor((ms % 1000) / 10);
             return mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0') + "." + millis.toString().padStart(2, '0');
         }
 
         function addLap() {
             sessionLapCount++;
             globalStopSequence++;
-            let ms = (globalStopSequence > 2 && globalStopSequence <= 5) ? 
-                     riggedMillis[globalStopSequence - 3] : 
-                     Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            
+            let ms;
+            // LOGICA CORRETTA: Legge tutti i numeri della lista finché ci sono
+            if (globalStopSequence <= riggedMillis.length) {
+                ms = riggedMillis[globalStopSequence - 1];
+            } else {
+                ms = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            }
             
             let timeStr = d.innerHTML.split('.')[0] + "." + ms;
             const li = document.createElement('li');
-            li.innerHTML = `<span>Giro ${sessionLapCount}</span> <span class="lap-time">${timeStr}</span>`;
+            li.innerHTML = `<span class="lap-label">Giro ${sessionLapCount}</span> <span class="lap-time">${timeStr}</span>`;
             lapsList.prepend(li);
             return ms;
         }
@@ -87,24 +165,24 @@
             if (!isRunning) {
                 isRunning = true; startTime = Date.now();
                 timerInterval = setInterval(() => { d.innerHTML = format(Date.now() - startTime + elapsedTime); }, 30);
-                r.innerHTML = "Interrompi"; r.className = "btn btn-stop";
-                l.innerHTML = "Giro"; l.className = "btn btn-reset";
+                r.innerHTML = '<div class="btn-inner">Stop</div>'; r.className = "btn btn-stop";
+                l.innerHTML = '<div class="btn-inner">Giro</div>'; l.className = "btn btn-reset";
             } else {
                 isRunning = false; clearInterval(timerInterval);
                 let ms = addLap();
                 d.innerHTML = d.innerHTML.split('.')[0] + "." + ms;
                 elapsedTime = (parseInt(d.innerHTML.split(':')[0])*60000) + (parseInt(d.innerHTML.split(':')[1].split('.')[0])*1000) + (parseInt(ms)*10);
-                r.innerHTML = "Avvia"; r.className = "btn btn-start";
-                l.innerHTML = "Ripristina";
+                r.innerHTML = '<div class="btn-inner">Avvia</div>'; r.className = "btn btn-start";
+                l.innerHTML = '<div class="btn-inner">Ripristina</div>';
             }
         };
 
         l.onclick = () => {
             if (isRunning) { addLap(); } 
-            else if (l.innerHTML === "Ripristina") {
+            else if (l.innerText === "Ripristina") {
                 elapsedTime = 0; sessionLapCount = 0;
                 d.innerHTML = "00:00.00"; lapsList.innerHTML = "";
-                l.innerHTML = "Giro"; l.className = "btn btn-disabled";
+                l.innerHTML = '<div class="btn-inner">Giro</div>'; l.className = "btn btn-disabled";
             }
         };
     </script>
