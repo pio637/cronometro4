@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cronometro">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <title>Cronometro</title>
+    <style>
+        :root { --ios-green: #1a3d20; --ios-green-text: #50d366; --ios-red: #321614; --ios-red-text: #ff453a; --ios-gray: #333; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background-color: #000; color: #fff; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            margin: 0; display: flex; justify-content: center; height: 100vh; overflow: hidden;
+            padding-top: env(safe-area-inset-top); /* Gestisce la tacca dell'iPhone */
+        }
+
+        .iphone-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; padding: 40px 20px; }
+        .display { font-size: 5rem; font-weight: 200; text-align: center; margin: 60px 0; font-variant-numeric: tabular-nums; letter-spacing: -2px; }
+        .controls { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        
+        .btn { 
+            width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 17px; 
+            display: flex; align-items: center; justify-content: center; outline: none; transition: opacity 0.1s;
+        }
+        .btn:active { opacity: 0.5; }
+        .btn-start { background: var(--ios-green); color: var(--ios-green-text); }
+        .btn-stop { background: var(--ios-red); color: var(--ios-red-text); }
+        .btn-reset { background: var(--ios-gray); color: #fff; }
+        .btn-disabled { background: #1c1c1e; color: #8e8e93; }
+
+        .laps-container { flex-grow: 1; border-top: 0.5px solid #333; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .laps-list { list-style: none; padding: 0; margin: 0; }
+        .laps-list li { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid #333; font-size: 17px; }
+        .lap-time { font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body>
+    <div class="iphone-container">
+        <div class="display" id="mainDisplay">00:00.00</div>
+        <div class="controls">
+            <button id="leftBtn" class="btn btn-disabled">Giro</button>
+            <button id="rightBtn" class="btn btn-start">Avvia</button>
+        </div>
+        <div class="laps-container"><ul id="laps" class="laps-list"></ul></div>
+    </div>
+
+    <script>
+        let startTime, elapsedTime = 0, timerInterval, isRunning = false;
+        let globalStopSequence = 0, sessionLapCount = 0;
+        const riggedMillis = ["09", "04", "03", "12", "45", "28", "08", "03"];
+
+        const d = document.getElementById('mainDisplay');
+        const l = document.getElementById('leftBtn');
+        const r = document.getElementById('rightBtn');
+        const lapsList = document.getElementById('laps');
+
+        function format(ms) {
+            let diff = ms;
+            let mins = Math.floor(diff / 60000);
+            let secs = Math.floor((diff % 60000) / 1000);
+            let millis = Math.floor((diff % 1000) / 10);
+            return mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0') + "." + millis.toString().padStart(2, '0');
+        }
+
+        function addLap() {
+            sessionLapCount++;
+            globalStopSequence++;
+            let ms = (globalStopSequence > 2 && globalStopSequence <= 5) ? 
+                     riggedMillis[globalStopSequence - 3] : 
+                     Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            
+            let timeStr = d.innerHTML.split('.')[0] + "." + ms;
+            const li = document.createElement('li');
+            li.innerHTML = `<span>Giro ${sessionLapCount}</span> <span class="lap-time">${timeStr}</span>`;
+            lapsList.prepend(li);
+            return ms;
+        }
+
+        r.onclick = () => {
+            if (!isRunning) {
+                isRunning = true; startTime = Date.now();
+                timerInterval = setInterval(() => { d.innerHTML = format(Date.now() - startTime + elapsedTime); }, 30);
+                r.innerHTML = "Interrompi"; r.className = "btn btn-stop";
+                l.innerHTML = "Giro"; l.className = "btn btn-reset";
+            } else {
+                isRunning = false; clearInterval(timerInterval);
+                let ms = addLap();
+                d.innerHTML = d.innerHTML.split('.')[0] + "." + ms;
+                elapsedTime = (parseInt(d.innerHTML.split(':')[0])*60000) + (parseInt(d.innerHTML.split(':')[1].split('.')[0])*1000) + (parseInt(ms)*10);
+                r.innerHTML = "Avvia"; r.className = "btn btn-start";
+                l.innerHTML = "Ripristina";
+            }
+        };
+
+        l.onclick = () => {
+            if (isRunning) { addLap(); } 
+            else if (l.innerHTML === "Ripristina") {
+                elapsedTime = 0; sessionLapCount = 0;
+                d.innerHTML = "00:00.00"; lapsList.innerHTML = "";
+                l.innerHTML = "Giro"; l.className = "btn btn-disabled";
+            }
+        };
+    </script>
+</body>
+</html>
